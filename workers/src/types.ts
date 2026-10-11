@@ -66,6 +66,9 @@ export type UserUpdate = Partial<
   Pick<User, 'firstName' | 'lastName' | 'avatarUrl' | 'bio' | 'location' | 'sports' | 'availability'>
 >
 
+/** Champs fournis par le client à la création du profil (PUT /users/{id} sur un profil inexistant). */
+export type UserCreate = Required<UserUpdate>
+
 /**
  * Résultat de GET /users : un `User` enrichi de `distanceKm` (arrondi à 1 décimale)
  * quand la recherche est géolocalisée (lat/lng fournis). Absent sinon.

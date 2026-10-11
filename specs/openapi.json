@@ -108,8 +108,8 @@
       },
       "put": {
         "tags": ["users"],
-        "summary": "Mettre à jour un profil utilisateur",
-        "description": "Met à jour tout ou partie du profil. Un utilisateur ne peut mettre à jour que son propre profil (id == uid du jeton d'authentification).",
+        "summary": "Créer ou mettre à jour son profil utilisateur",
+        "description": "Crée ou met à jour le profil de l'utilisateur connecté. `id` doit être égal à l'uid du jeton d'authentification : il est impossible de créer ou de modifier le profil d'un autre utilisateur (403).\n\n- **Profil inexistant (création, 201)** : `firstName`, `lastName` et `location` sont obligatoires ; `sports` et `availability` valent `[]` et `bio`/`avatarUrl` `null` s'ils sont omis. `createdAt` et `updatedAt` sont fixés à la date de la requête.\n- **Profil existant (mise à jour, 200)** : seuls les champs fournis sont modifiés ; `updatedAt` est rafraîchi, `createdAt` est inchangé.\n\nL'e-mail n'est jamais lu dans le corps : il est toujours pris dans le jeton (claim `email`). Une création avec un jeton sans e-mail est refusée (400, `missing_email`).",
         "parameters": [
           { "$ref": "#/components/parameters/UserId" }
         ],
@@ -117,23 +117,94 @@
           "required": true,
           "content": {
             "application/json": {
-              "schema": { "$ref": "#/components/schemas/UserUpdate" }
+              "schema": { "$ref": "#/components/schemas/UserUpdate" },
+              "examples": {
+                "creation": {
+                  "summary": "Création du profil (premier appel après inscription)",
+                  "value": {
+                    "firstName": "Léa",
+                    "lastName": "Martin",
+                    "sports": [
+                      { "sport": "course_a_pied", "level": "intermediaire" },
+                      { "sport": "yoga", "level": "debutant" }
+                    ],
+                    "location": { "city": "Lyon", "lat": 45.764, "lng": 4.8357 },
+                    "availability": [
+                      { "dayOfWeek": "mardi", "startTime": "18:00", "endTime": "20:00" },
+                      { "dayOfWeek": "samedi", "startTime": "09:00", "endTime": "11:00" }
+                    ],
+                    "bio": "Je prépare un semi-marathon, partante pour des sorties le soir."
+                  }
+                },
+                "miseAJour": {
+                  "summary": "Mise à jour partielle d'un profil existant",
+                  "value": {
+                    "bio": "Semi-marathon bouclé ! Je cherche maintenant des partenaires de trail.",
+                    "location": { "city": "Villeurbanne", "lat": 45.7719, "lng": 4.8902 }
+                  }
+                }
+              }
             }
           }
         },
         "responses": {
           "200": {
-            "description": "Profil mis à jour",
+            "description": "Profil existant mis à jour",
             "content": {
               "application/json": {
-                "schema": { "$ref": "#/components/schemas/User" }
+                "schema": { "$ref": "#/components/schemas/User" },
+                "example": {
+                  "id": "Xk3p9QmZr2TfW8aLc1VbN7yHd4E2",
+                  "email": "lea.martin@example.com",
+                  "firstName": "Léa",
+                  "lastName": "Martin",
+                  "avatarUrl": null,
+                  "bio": "Semi-marathon bouclé ! Je cherche maintenant des partenaires de trail.",
+                  "location": { "city": "Villeurbanne", "lat": 45.7719, "lng": 4.8902 },
+                  "sports": [
+                    { "sport": "course_a_pied", "level": "intermediaire" },
+                    { "sport": "yoga", "level": "debutant" }
+                  ],
+                  "availability": [
+                    { "dayOfWeek": "mardi", "startTime": "18:00", "endTime": "20:00" },
+                    { "dayOfWeek": "samedi", "startTime": "09:00", "endTime": "11:00" }
+                  ],
+                  "createdAt": "2026-10-11T08:30:00.000Z",
+                  "updatedAt": "2026-10-12T19:05:00.000Z"
+                }
+              }
+            }
+          },
+          "201": {
+            "description": "Profil créé (le document users/{id} n'existait pas)",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/User" },
+                "example": {
+                  "id": "Xk3p9QmZr2TfW8aLc1VbN7yHd4E2",
+                  "email": "lea.martin@example.com",
+                  "firstName": "Léa",
+                  "lastName": "Martin",
+                  "avatarUrl": null,
+                  "bio": "Je prépare un semi-marathon, partante pour des sorties le soir.",
+                  "location": { "city": "Lyon", "lat": 45.764, "lng": 4.8357 },
+                  "sports": [
+                    { "sport": "course_a_pied", "level": "intermediaire" },
+                    { "sport": "yoga", "level": "debutant" }
+                  ],
+                  "availability": [
+                    { "dayOfWeek": "mardi", "startTime": "18:00", "endTime": "20:00" },
+                    { "dayOfWeek": "samedi", "startTime": "09:00", "endTime": "11:00" }
+                  ],
+                  "createdAt": "2026-10-11T08:30:00.000Z",
+                  "updatedAt": "2026-10-11T08:30:00.000Z"
+                }
               }
             }
           },
           "400": { "$ref": "#/components/responses/BadRequest" },
           "401": { "$ref": "#/components/responses/Unauthorized" },
-          "403": { "$ref": "#/components/responses/Forbidden" },
-          "404": { "$ref": "#/components/responses/NotFound" }
+          "403": { "$ref": "#/components/responses/Forbidden" }
         }
       }
     },
@@ -534,9 +605,9 @@
         "type": "object",
         "required": ["lat", "lng"],
         "properties": {
-          "lat": { "type": "number", "format": "double" },
-          "lng": { "type": "number", "format": "double" },
-          "city": { "type": "string" }
+          "lat": { "type": "number", "format": "double", "example": 45.764 },
+          "lng": { "type": "number", "format": "double", "example": 4.8357 },
+          "city": { "type": "string", "example": "Lyon" }
         }
       },
       "SportPractice": {
@@ -598,7 +669,7 @@
       },
       "UserUpdate": {
         "type": "object",
-        "description": "Champs modifiables d'un profil utilisateur. Tous les champs sont optionnels.",
+        "description": "Champs du profil envoyés à PUT /users/{id}. En mise à jour, tous les champs sont optionnels. En création (profil inexistant), `firstName`, `lastName` et `location` sont obligatoires. `email`, `id`, `createdAt` et `updatedAt` ne sont pas acceptés : ils sont fixés par le serveur.",
         "properties": {
           "firstName": { "type": "string" },
           "lastName": { "type": "string" },
