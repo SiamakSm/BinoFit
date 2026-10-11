@@ -12,6 +12,7 @@ import {
   type GeoPoint,
   type SportPractice,
   type User,
+  type UserCreate,
   type UserUpdate,
 } from '../types'
 
@@ -29,7 +30,8 @@ function isGeoPoint(value: unknown): value is GeoPoint {
     typeof (value as GeoPoint).lat === 'number' &&
     typeof (value as GeoPoint).lng === 'number' &&
     Number.isFinite((value as GeoPoint).lat) &&
-    Number.isFinite((value as GeoPoint).lng)
+    Number.isFinite((value as GeoPoint).lng) &&
+    ((value as GeoPoint).city === undefined || typeof (value as GeoPoint).city === 'string')
   )
 }
 
@@ -90,9 +92,10 @@ export function validateUserUpdate(body: unknown): UserUpdate {
 
   if ('location' in input) {
     if (!isGeoPoint(input.location)) {
-      throw new ApiError(400, 'invalid_body', 'location doit contenir lat et lng numériques')
+      throw new ApiError(400, 'invalid_body', 'location doit contenir lat et lng numériques (et city en chaîne si fourni)')
     }
-    update.location = input.location
+    const { lat, lng, city } = input.location
+    update.location = city === undefined ? { lat, lng } : { city, lat, lng }
   }
 
   if ('sports' in input) {
@@ -110,4 +113,26 @@ export function validateUserUpdate(body: unknown): UserUpdate {
   }
 
   return update
+}
+
+/**
+ * Valide le corps de PUT /users/{id} quand le profil n'existe pas encore (création) :
+ * mêmes règles que la mise à jour, avec firstName, lastName et location obligatoires.
+ * sports et availability valent [] et bio/avatarUrl null s'ils sont absents.
+ */
+export function validateUserCreate(body: unknown): UserCreate {
+  const update = validateUserUpdate(body)
+  const missing = (['firstName', 'lastName', 'location'] as const).filter((key) => update[key] === undefined)
+  if (missing.length > 0) {
+    throw new ApiError(400, 'invalid_body', `Champs obligatoires pour créer le profil: ${missing.join(', ')}`)
+  }
+  return {
+    firstName: update.firstName!,
+    lastName: update.lastName!,
+    location: update.location!,
+    sports: update.sports ?? [],
+    availability: update.availability ?? [],
+    bio: update.bio ?? null,
+    avatarUrl: update.avatarUrl ?? null,
+  }
 }

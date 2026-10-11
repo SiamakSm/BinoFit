@@ -4,9 +4,9 @@
 import { Hono } from 'hono'
 import type { AppBindings } from '../env'
 import { ApiError } from '../lib/apiError'
-import { getDocument, listDocuments, patchDocument } from '../lib/firestore'
+import { createDocument, getDocument, listDocuments, patchDocument } from '../lib/firestore'
 import { haversineDistanceKm } from '../lib/geo'
-import { firestoreDocumentToUser, validateUserUpdate } from '../lib/userMapper'
+import { firestoreDocumentToUser, validateUserCreate, validateUserUpdate } from '../lib/userMapper'
 import { firebaseAuth } from '../middleware/auth'
 import {
   DAYS_OF_WEEK,
@@ -109,7 +109,14 @@ usersRoute.get('/:id', async (c) => {
   return c.json(firestoreDocumentToUser(doc))
 })
 
-/** PUT /users/{id} — un utilisateur ne peut modifier que son propre profil. */
+/**
+ * PUT /users/{id} — crée ou met à jour le profil de l'utilisateur connecté.
+ *
+ * `id` doit être l'uid du jeton : on ne peut ni créer ni modifier le profil d'un autre.
+ * L'e-mail n'est jamais lu dans le corps, il vient toujours du jeton.
+ * - Profil inexistant : création (201) avec createdAt = updatedAt = maintenant.
+ * - Profil existant : mise à jour partielle (200), updatedAt rafraîchi.
+ */
 usersRoute.put('/:id', async (c) => {
   const id = c.req.param('id')
   const authUser = c.get('authUser')
@@ -118,19 +125,32 @@ usersRoute.put('/:id', async (c) => {
     throw new ApiError(403, 'forbidden', 'Vous ne pouvez modifier que votre propre profil')
   }
 
-  const existing = await getDocument(c.env, USERS_COLLECTION, id)
-  if (!existing) {
-    throw new ApiError(404, 'user_not_found', 'Utilisateur introuvable')
-  }
-
   const body = await c.req.json().catch(() => {
     throw new ApiError(400, 'invalid_body', 'Corps de requête JSON invalide')
   })
-  const updates = validateUserUpdate(body)
 
+  const now = new Date().toISOString()
+  const existing = await getDocument(c.env, USERS_COLLECTION, id)
+
+  if (!existing) {
+    const profile = validateUserCreate(body)
+    if (!authUser.email) {
+      throw new ApiError(400, 'missing_email', "Le jeton d'authentification ne contient pas d'e-mail")
+    }
+    const createdDoc = await createDocument(
+      c.env,
+      USERS_COLLECTION,
+      { email: authUser.email, ...profile, createdAt: now, updatedAt: now },
+      id,
+    )
+    return c.json(firestoreDocumentToUser(createdDoc), 201)
+  }
+
+  const updates = validateUserUpdate(body)
   const updatedDoc = await patchDocument(c.env, USERS_COLLECTION, id, {
     ...updates,
-    updatedAt: new Date().toISOString(),
+    ...(authUser.email ? { email: authUser.email } : {}),
+    updatedAt: now,
   })
 
   return c.json(firestoreDocumentToUser(updatedDoc))
