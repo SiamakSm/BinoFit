@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { Button } from '@/components/ui/button'
 import { RouterLink } from 'vue-router'
 import { LEVEL_LABELS, SPORT_LABELS } from '../services/labels'
 import { formatDistance, initials } from '../services/format'
@@ -29,9 +30,9 @@ defineProps<{ profile: UserSearchResult }>()
         <strong>{{ formatDistance(profile.distanceKm) }}</strong>
       </div>
     </div>
-    <RouterLink :to="{ name: 'athlete', params: { id: profile.id } }" class="btn btn-secondary">
+    <Button as-child variant="outline"><RouterLink :to="{ name: 'athlete', params: { id: profile.id } }">
       Voir le profil
-    </RouterLink>
+    </RouterLink></Button>
   </li>
 </template>
 
@@ -115,7 +116,7 @@ defineProps<{ profile: UserSearchResult }>()
   white-space: nowrap;
 }
 
-.athlete-card .btn {
+.athlete-card > a {
   text-decoration: none;
 }
 </style>

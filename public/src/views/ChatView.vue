@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { Input } from '@/components/ui/input'
 import { computed, nextTick, onMounted, ref } from 'vue'
 import { RouterLink, useRoute, useRouter } from 'vue-router'
 import { ArrowLeft, Send } from 'lucide-vue-next'
@@ -110,13 +111,12 @@ onMounted(load)
     <p v-if="errorMessage && messages.length > 0" class="chat__error">{{ errorMessage }}</p>
 
     <form class="chat__composer" @submit.prevent="send">
-      <input
+      <Input
         v-model="draft"
         type="text"
         maxlength="2000"
         placeholder="Écris un message"
-        aria-label="Message"
-      />
+        aria-label="Message" />
       <button type="submit" class="chat__send" :disabled="!draft.trim() || sending" aria-label="Envoyer">
         <Send :size="18" aria-hidden="true" />
       </button>

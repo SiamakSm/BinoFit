@@ -1,4 +1,7 @@
 <script setup lang="ts">
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { Textarea } from '@/components/ui/textarea'
 import { computed, onMounted, ref } from 'vue'
 import { RouterLink, useRoute, useRouter } from 'vue-router'
 import { ArrowLeft, CheckCircle2 } from 'lucide-vue-next'
@@ -131,10 +134,10 @@ async function submit() {
           {{ guest?.firstName }} va recevoir ta proposition. Tu la retrouveras dans « Mes activités ».
         </p>
         <div class="sent__actions">
-          <RouterLink :to="{ name: 'activities' }" class="btn btn-primary">Voir mes activités</RouterLink>
-          <RouterLink :to="{ name: 'athlete', params: { id: guestId } }" class="btn btn-secondary">
+          <Button as-child><RouterLink :to="{ name: 'activities' }">Voir mes activités</RouterLink></Button>
+          <Button as-child variant="outline"><RouterLink :to="{ name: 'athlete', params: { id: guestId } }">
             Retour au profil
-          </RouterLink>
+          </RouterLink></Button>
         </div>
       </div>
 
@@ -155,45 +158,44 @@ async function submit() {
           <div class="form-row--split">
             <div class="form-row">
               <label for="date">Date</label>
-              <input id="date" v-model="date" type="date" :min="today" required />
+              <Input id="date" v-model="date" type="date" :min="today" required />
             </div>
             <div class="form-row">
               <label for="time">Heure</label>
-              <input id="time" v-model="time" type="time" required />
+              <Input id="time" v-model="time" type="time" required />
             </div>
           </div>
 
           <div class="form-row">
             <label for="place">Lieu</label>
-            <input
+            <Input
               id="place"
               v-model="placeName"
               type="text"
               maxlength="120"
               placeholder="Ex. Parc de la Tête d’Or, entrée Lac"
-              required
-            />
+              required />
             <span class="field-hint">Le point sur la carte est placé entre vous deux.</span>
           </div>
 
           <div class="form-row">
             <label for="message">Message</label>
-            <textarea
+            <Textarea
               id="message"
               v-model="message"
               rows="4"
               maxlength="500"
               placeholder="Présente-toi et précise ton idée"
               required
-            ></textarea>
+            ></Textarea>
             <span class="field-hint">{{ messageLeft }} caractères restants</span>
           </div>
 
           <p v-if="formError" class="alert alert-error">{{ formError }}</p>
 
-          <button type="submit" class="btn btn-primary" :disabled="submitting">
+          <Button type="submit" :disabled="submitting">
             {{ submitting ? 'Envoi…' : 'Envoyer la proposition' }}
-          </button>
+          </Button>
         </form>
       </template>
     </div>
@@ -223,7 +225,7 @@ async function submit() {
   gap: 10px;
 }
 
-.sent__actions .btn {
+.sent__actions > * {
   text-decoration: none;
 }
 

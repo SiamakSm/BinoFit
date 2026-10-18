@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { Button } from '@/components/ui/button'
 import { computed, onMounted, reactive, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { ArrowLeft, MapPin } from 'lucide-vue-next'
@@ -154,32 +155,29 @@ onMounted(async () => {
 
           <div v-if="canAccept(a) || canClose(a)" class="activity-card__actions">
             <template v-if="canAccept(a)">
-              <button
+              <Button
                 type="button"
-                class="btn btn-primary"
                 :disabled="busyId === a.id"
                 @click="setStatus(a, 'acceptee')"
               >
                 Accepter
-              </button>
-              <button
+              </Button>
+              <Button variant="outline"
                 type="button"
-                class="btn btn-secondary"
                 :disabled="busyId === a.id"
                 @click="setStatus(a, 'refusee')"
               >
                 Refuser
-              </button>
+              </Button>
             </template>
-            <button
+            <Button variant="outline"
               v-else-if="canClose(a)"
               type="button"
-              class="btn btn-secondary"
               :disabled="busyId === a.id"
               @click="setStatus(a, 'terminee')"
             >
               Marquer comme terminée
-            </button>
+            </Button>
           </div>
         </li>
       </ul>
@@ -289,7 +287,7 @@ onMounted(async () => {
   margin-top: 6px;
 }
 
-.activity-card__actions .btn {
+.activity-card__actions > * {
   width: auto;
   flex: 1;
 }

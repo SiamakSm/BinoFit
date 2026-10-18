@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { Button } from '@/components/ui/button'
 import { computed, onMounted, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { ArrowLeft, CalendarPlus, MapPin, MessageCircle } from 'lucide-vue-next'
@@ -154,19 +155,18 @@ watch(athleteId, load)
         <p v-if="errorMessage" class="alert alert-error">{{ errorMessage }}</p>
 
         <div v-if="!isMe" class="athlete__actions">
-          <button
+          <Button variant="outline"
             type="button"
-            class="btn btn-secondary"
             :disabled="contacting"
             @click="contact"
           >
             <MessageCircle :size="18" aria-hidden="true" />
             {{ contacting ? 'Ouverture…' : 'Contacter' }}
-          </button>
-          <button type="button" class="btn btn-primary" @click="proposeActivity">
+          </Button>
+          <Button type="button" @click="proposeActivity">
             <CalendarPlus :size="18" aria-hidden="true" />
             Proposer une activité
-          </button>
+          </Button>
         </div>
       </template>
     </div>
@@ -214,7 +214,7 @@ watch(athleteId, load)
   padding-top: 8px;
 }
 
-.athlete__actions .btn {
+.athlete__actions > * {
   text-decoration: none;
 }
 

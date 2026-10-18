@@ -1,4 +1,7 @@
 <script setup lang="ts">
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { Textarea } from '@/components/ui/textarea'
 import { computed, onMounted, reactive, ref } from 'vue'
 import { RouterLink, useRouter } from 'vue-router'
 import { CalendarDays, Plus, Trash2 } from 'lucide-vue-next'
@@ -157,17 +160,17 @@ async function onLogout() {
           <div class="form-row--split">
             <div class="form-row">
               <label for="firstName">Prénom</label>
-              <input id="firstName" v-model="firstName" type="text" maxlength="60" required />
+              <Input id="firstName" v-model="firstName" type="text" maxlength="60" required />
             </div>
             <div class="form-row">
               <label for="lastName">Nom</label>
-              <input id="lastName" v-model="lastName" type="text" maxlength="60" required />
+              <Input id="lastName" v-model="lastName" type="text" maxlength="60" required />
             </div>
           </div>
 
           <div class="form-row">
             <label for="bio">Bio</label>
-            <textarea id="bio" v-model="bio" rows="3" maxlength="300" placeholder="Quelques mots sur toi"></textarea>
+            <Textarea id="bio" v-model="bio" rows="3" maxlength="300" placeholder="Quelques mots sur toi"></Textarea>
           </div>
 
           <div class="form-row">
@@ -201,24 +204,24 @@ async function onLogout() {
               <select :value="slot.dayOfWeek" aria-label="Jour" @change="setDay(i, ($event.target as HTMLSelectElement).value as DayOfWeek)">
                 <option v-for="d in DAYS" :key="d" :value="d">{{ DAY_LABELS[d] }}</option>
               </select>
-              <input v-model="slot.startTime" type="time" aria-label="Début" />
-              <input v-model="slot.endTime" type="time" aria-label="Fin" />
+              <Input v-model="slot.startTime" type="time" aria-label="Début" />
+              <Input v-model="slot.endTime" type="time" aria-label="Fin" />
               <button type="button" class="icon-btn" aria-label="Supprimer" @click="removeSlot(i)">
                 <Trash2 :size="16" aria-hidden="true" />
               </button>
             </div>
-            <button type="button" class="btn btn-secondary add-slot" @click="addSlot">
+            <Button type="button" variant="outline" class="add-slot" @click="addSlot">
               <Plus :size="16" aria-hidden="true" />
               Ajouter un créneau
-            </button>
+            </Button>
           </fieldset>
 
           <p v-if="saveError" class="alert alert-error">{{ saveError }}</p>
           <p v-if="saved" class="alert alert-success">Profil enregistré.</p>
 
-          <button type="submit" class="btn btn-primary" :disabled="saving">
+          <Button type="submit" :disabled="saving">
             {{ saving ? 'Enregistrement…' : 'Enregistrer' }}
-          </button>
+          </Button>
         </form>
       </template>
     </div>

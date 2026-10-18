@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
 import { ref } from 'vue'
 import { useAuth } from '../composables/useAuth'
 
@@ -73,22 +75,21 @@ function toErrorMessage(e: unknown): string {
         <form @submit.prevent="onSubmit" novalidate>
           <div class="form-row">
             <label for="email">E-mail</label>
-            <input
+            <Input
               id="email"
               v-model="email"
               type="email"
               autocomplete="email"
               placeholder="alex.martin@email.com"
-              :disabled="loading"
-            />
+              :disabled="loading" />
           </div>
 
           <p v-if="error" class="alert alert-error">{{ error }}</p>
 
-          <button type="submit" class="btn btn-primary" :disabled="loading">
+          <Button type="submit" :disabled="loading">
             <span v-if="loading" class="spinner"></span>
             <span>{{ loading ? 'Envoi en cours…' : 'Recevoir le lien magique' }}</span>
-          </button>
+          </Button>
         </form>
 
         <div class="divider-text">ou</div>
@@ -107,9 +108,9 @@ function toErrorMessage(e: unknown): string {
             Un lien de connexion a été envoyé à <strong style="color: var(--color-text)">{{ email }}</strong>.
             Clique dessus depuis cet appareil pour te connecter.
           </p>
-          <button type="button" class="btn btn-secondary" style="width: auto; padding-inline: 24px" @click="linkSent = false">
+          <Button variant="outline" type="button" style="width: auto; padding-inline: 24px" @click="linkSent = false">
             Renvoyer / modifier l'e-mail
-          </button>
+          </Button>
         </div>
       </template>
 
