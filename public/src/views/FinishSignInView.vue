@@ -17,7 +17,7 @@ async function attemptSignIn(fallbackEmail?: string) {
   errorMessage.value = ''
   try {
     await completeSignIn(window.location.href, fallbackEmail)
-    router.replace('/accueil')
+    router.replace('/decouvrir')
   } catch (e) {
     const message = (e as Error)?.message
     if (message === 'EMAIL_REQUIRED') {
