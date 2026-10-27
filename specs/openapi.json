@@ -790,17 +790,13 @@
       },
       "Message": {
         "type": "object",
-        "required": ["id", "conversationId", "senderId", "text", "sentAt", "readBy"],
+        "required": ["id", "conversationId", "senderId", "text", "sentAt"],
         "properties": {
           "id": { "type": "string" },
           "conversationId": { "type": "string" },
           "senderId": { "type": "string" },
           "text": { "type": "string" },
-          "sentAt": { "type": "string", "format": "date-time" },
-          "readBy": {
-            "type": "array",
-            "items": { "type": "string" }
-          }
+          "sentAt": { "type": "string", "format": "date-time" }
         }
       },
       "MessageCreate": {
