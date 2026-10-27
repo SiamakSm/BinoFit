@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
 import { reactive, ref } from 'vue'
 import { useAuth } from '../composables/useAuth'
 import { SPORTS, type Sport } from '../types/profile'
@@ -90,38 +92,35 @@ function toErrorMessage(e: unknown): string {
           <div class="form-row form-row--split">
             <div class="form-row">
               <label for="prenom">Prénom</label>
-              <input
+              <Input
                 id="prenom"
                 v-model="form.prenom"
                 type="text"
                 autocomplete="given-name"
                 placeholder="Alex"
-                :disabled="loading"
-              />
+                :disabled="loading" />
             </div>
             <div class="form-row">
               <label for="nom">Nom</label>
-              <input
+              <Input
                 id="nom"
                 v-model="form.nom"
                 type="text"
                 autocomplete="family-name"
                 placeholder="Martin"
-                :disabled="loading"
-              />
+                :disabled="loading" />
             </div>
           </div>
 
           <div class="form-row">
             <label for="email">E-mail</label>
-            <input
+            <Input
               id="email"
               v-model="form.email"
               type="email"
               autocomplete="email"
               placeholder="alex.martin@email.com"
-              :disabled="loading"
-            />
+              :disabled="loading" />
           </div>
 
           <div class="form-row">
@@ -134,22 +133,21 @@ function toErrorMessage(e: unknown): string {
 
           <div class="form-row">
             <label for="localisation">Localisation</label>
-            <input
+            <Input
               id="localisation"
               v-model="form.localisation"
               type="text"
               autocomplete="address-level2"
               placeholder="Paris, France"
-              :disabled="loading"
-            />
+              :disabled="loading" />
           </div>
 
           <p v-if="error" class="alert alert-error">{{ error }}</p>
 
-          <button type="submit" class="btn btn-primary" :disabled="loading">
+          <Button type="submit" :disabled="loading">
             <span v-if="loading" class="spinner"></span>
             <span>{{ loading ? 'Envoi en cours…' : "S'inscrire" }}</span>
-          </button>
+          </Button>
         </form>
 
         <div class="divider-text">ou</div>
@@ -168,9 +166,9 @@ function toErrorMessage(e: unknown): string {
             Un lien de connexion a été envoyé à <strong style="color: var(--color-text)">{{ form.email }}</strong>.
             Clique dessus depuis cet appareil pour activer ton compte BINOFIT.
           </p>
-          <router-link to="/connexion" class="btn btn-secondary" style="width: auto; padding-inline: 24px">
+          <Button as-child variant="outline"><router-link to="/connexion" style="width: auto; padding-inline: 24px">
             Retour
-          </router-link>
+          </router-link></Button>
         </div>
       </template>
 

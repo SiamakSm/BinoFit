@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
 import { onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuth } from '../composables/useAuth'
@@ -17,7 +19,7 @@ async function attemptSignIn(fallbackEmail?: string) {
   errorMessage.value = ''
   try {
     await completeSignIn(window.location.href, fallbackEmail)
-    router.replace('/accueil')
+    router.replace('/decouvrir')
   } catch (e) {
     const message = (e as Error)?.message
     if (message === 'EMAIL_REQUIRED') {
@@ -67,9 +69,9 @@ onMounted(() => {
         <form @submit.prevent="onConfirmEmail">
           <div class="form-row">
             <label for="confirm-email">E-mail</label>
-            <input id="confirm-email" v-model="email" type="email" placeholder="alex.martin@email.com" />
+            <Input id="confirm-email" v-model="email" type="email" placeholder="alex.martin@email.com" />
           </div>
-          <button type="submit" class="btn btn-primary">Confirmer</button>
+          <Button type="submit">Confirmer</Button>
         </form>
       </div>
 
@@ -77,9 +79,9 @@ onMounted(() => {
         <div class="confirm-box__icon">⚠️</div>
         <h1>Lien invalide</h1>
         <p class="alert alert-error">{{ errorMessage || "Ce lien n'est pas un lien de connexion BINOFIT valide." }}</p>
-        <router-link to="/connexion" class="btn btn-primary" style="width: auto; padding-inline: 24px">
+        <Button as-child><router-link to="/connexion" style="width: auto; padding-inline: 24px">
           Retour à la connexion
-        </router-link>
+        </router-link></Button>
       </div>
     </div>
   </div>

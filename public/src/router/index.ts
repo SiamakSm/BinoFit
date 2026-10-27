@@ -13,6 +13,8 @@ declare module 'vue-router' {
     guestOnly?: boolean
     /** Titre affiché dans l'onglet du navigateur */
     title?: string
+    /** Écran accessible depuis la barre de navigation du bas */
+    tab?: boolean
   }
 }
 
@@ -42,11 +44,61 @@ const router = createRouter({
       component: () => import('../views/FinishSignInView.vue'),
       meta: { title: 'Finalisation — BINOFIT' },
     },
+    // Ancienne page d'accueil : remplacée par l'onglet Découvrir.
+    { path: '/accueil', name: 'accueil', redirect: { name: 'decouvrir' } },
     {
-      path: '/accueil',
-      name: 'accueil',
-      component: () => import('../views/HomeView.vue'),
-      meta: { requiresAuth: true, title: 'Accueil — BINOFIT' },
+      path: '/decouvrir',
+      name: 'decouvrir',
+      component: () => import('../views/DiscoverView.vue'),
+      meta: { requiresAuth: true, tab: true, title: 'Découvrir — BINOFIT' },
+    },
+    {
+      path: '/recherche',
+      name: 'recherche',
+      component: () => import('../views/SearchView.vue'),
+      meta: { requiresAuth: true, title: 'Rechercher — BINOFIT' },
+    },
+    {
+      path: '/carte',
+      name: 'carte',
+      component: () => import('../views/MapView.vue'),
+      meta: { requiresAuth: true, tab: true, title: 'Carte — BINOFIT' },
+    },
+    {
+      path: '/messages',
+      name: 'messages',
+      component: () => import('../views/ConversationsView.vue'),
+      meta: { requiresAuth: true, tab: true, title: 'Messages — BINOFIT' },
+    },
+    {
+      path: '/messages/:id',
+      name: 'conversation',
+      component: () => import('../views/ChatView.vue'),
+      meta: { requiresAuth: true, title: 'Messages — BINOFIT' },
+    },
+    {
+      path: '/profil',
+      name: 'profil',
+      component: () => import('../views/ProfileView.vue'),
+      meta: { requiresAuth: true, tab: true, title: 'Profil — BINOFIT' },
+    },
+    {
+      path: '/activites',
+      name: 'activities',
+      component: () => import('../views/ActivitiesView.vue'),
+      meta: { requiresAuth: true, title: 'Mes activités — BINOFIT' },
+    },
+    {
+      path: '/activites/nouvelle',
+      name: 'activity-new',
+      component: () => import('../views/ActivityCreateView.vue'),
+      meta: { requiresAuth: true, title: 'Proposer une activité — BINOFIT' },
+    },
+    {
+      path: '/athletes/:id',
+      name: 'athlete',
+      component: () => import('../views/AthleteView.vue'),
+      meta: { requiresAuth: true, title: 'Profil — BINOFIT' },
     },
     { path: '/:pathMatch(.*)*', redirect: '/' },
   ],
@@ -54,7 +106,7 @@ const router = createRouter({
 
 /**
  * Attend que Firebase Auth ait terminé sa vérification d'état initiale.
- * 
+ *
  * @returns Une promesse qui se résout lorsque `authReady` devient `true`
  */
 function waitForAuthReady(): Promise<void> {
@@ -84,7 +136,7 @@ router.beforeEach(async (to) => {
     return { name: 'connexion' }
   }
   if (to.meta.guestOnly && isAuthenticated.value) {
-    return { name: 'accueil' }
+    return { name: 'decouvrir' }
   }
   return true
 })
@@ -101,4 +153,3 @@ router.afterEach((to) => {
 })
 
 export default router
-
