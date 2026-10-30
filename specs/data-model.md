@@ -224,7 +224,8 @@ Format des erreurs de l'API : `{ "error": "<message>", "code": "<code>" }`.
 valide par un utilisateur qui n'a pas encore de ligne dans `users` (profil non créé via
 `PUT /users/{id}`).
 
-> À compléter : ce code n'existe pas encore dans `workers/src` ni dans
-> `specs/openapi.json`. Les routes concernées et le message exact sont à préciser
-> quand il sera implémenté. Aujourd'hui, les 403 renvoyés par l'API portent tous le
-> code `forbidden`.
+
+Cette erreur est renvoyée avant toute autre vérification par `POST /activities`,
+`POST /conversations` et `POST /favorites` (middleware `workers/src/middleware/profile.ts`).
+Réponse : `403 { "error": "Complète ton profil pour continuer", "code": "profile_required" }`.
+Le front doit alors rediriger vers l'écran Profil. Les autres 403 de l'API portent le code `forbidden`.
