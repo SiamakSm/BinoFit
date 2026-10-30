@@ -37,6 +37,47 @@ leur propose une activité (sport, date, lieu), puis échange avec eux par messa
 
 Le front ne parle jamais directement à la base : toutes les données passent par l'API.
 
+## Fonctionnalités
+
+Écrans présents dans `public/src/views`, avec leur route (`public/src/router/index.ts`).
+La barre du bas (`BottomNav.vue`) contient quatre onglets : Découvrir, Carte, Messages, Profil.
+Les routes marquées « connecté » redirigent vers `/connexion` sans session Firebase ;
+`/inscription` et `/connexion` redirigent vers `/decouvrir` si l'utilisateur est déjà connecté.
+
+| Route                  | Écran                      | Accès     | Ce que fait l'écran |
+| ---------------------- | -------------------------- | --------- | ------------------- |
+| `/inscription`         | `RegisterView.vue`         | visiteur  | Formulaire (prénom, nom, e-mail, sport, localisation) qui garde ces champs dans le `localStorage` du navigateur et envoie un lien magique Firebase. |
+| `/connexion`           | `LoginView.vue`            | visiteur  | Saisie de l'e-mail et envoi d'un lien magique de connexion, sans mot de passe. |
+| `/finish-signin`       | `FinishSignInView.vue`     | tous      | Finalise la connexion à l'ouverture du lien (redemande l'e-mail s'il n'est pas retrouvé), puis redirige vers `/decouvrir`. |
+| `/decouvrir`           | `DiscoverView.vue`         | connecté  | Liste les sportifs à moins de 10 km de la localisation du profil (Lyon par défaut), via `GET /users`. |
+| `/recherche`           | `SearchView.vue`           | connecté  | Recherche de sportifs filtrée par distance, sport, niveau et jour de disponibilité. |
+| `/carte`               | `MapView.vue`              | connecté  | Carte Leaflet (tuiles OpenStreetMap) avec un rayon de 10 km et un repère par sportif, cliquable. |
+| `/messages`            | `ConversationsView.vue`    | connecté  | Liste des conversations, les plus récentes d'abord. |
+| `/messages/:id`        | `ChatView.vue`             | connecté  | Messages d'une conversation (100 derniers) et envoi d'un nouveau message. |
+| `/profil`              | `ProfileView.vue`          | connecté  | Édition du profil (nom, bio, zone, sports et niveaux, disponibilités) via `PUT /users/{id}`, lien vers « Mes activités » et déconnexion. |
+| `/activites`           | `ActivitiesView.vue`       | connecté  | Activités à venir et passées ; l'invité peut accepter ou refuser, le créateur ou l'invité peut terminer une activité acceptée. |
+| `/activites/nouvelle`  | `ActivityCreateView.vue`   | connecté  | Formulaire pour proposer une activité (sport, date, lieu, message) à un sportif, via `POST /activities`. |
+| `/athletes/:id`        | `AthleteView.vue`          | connecté  | Profil public d'un sportif (bio, sports, disponibilités) avec boutons pour ouvrir une conversation ou proposer une activité. |
+
+Autres routes : `/` et toute route inconnue redirigent vers `/connexion` ; `/accueil`
+(ancienne page d'accueil) redirige vers `/decouvrir`.
+
+La localisation du profil se choisit parmi six zones prédéfinies autour de Lyon
+(`public/src/services/location.ts`), sans géocodage ni API externe. Les fonctions
+d'appel aux favoris existent dans `public/src/services/api.ts`, mais aucun écran ne les
+utilise encore.
+
+## Reste à faire
+
+- **Onglet Activités** : « Mes activités » n'est accessible que depuis l'écran Profil, pas
+  depuis la barre du bas.
+- **Actualisation automatique** : les écrans chargent leurs données à l'ouverture
+  uniquement (pas de rafraîchissement périodique ni de temps réel, y compris dans le chat).
+- **Profil obligatoire côté écrans** : l'API renvoie `403 profile_required` sans profil,
+  mais le front ne redirige pas encore vers l'écran Profil.
+- **Tests automatiques** : aucun test dans le dépôt (tests Playwright prévus).
+- **Passage éventuel à Supabase Auth** à la place de Firebase Authentication.
+
 ## Dossiers
 
 | Dossier / fichier                  | Contenu                                                         |
@@ -46,11 +87,12 @@ Le front ne parle jamais directement à la base : toutes les données passent pa
 | `specs/`                           | `openapi.json` (contrat de l'API), `schema.sql`, `data-model.md` |
 | `docs/`                            | Documentation technique (diagramme du modèle de données)        |
 | `BINOFIT v4 Wireframes.dc.html`    | Maquettes                                                       |
-| `AGENTS.md`                        | Stack, structure et conventions du projet                       |
+| `tests/`, `design/`                | N'existent pas encore dans le dépôt (tests Playwright prévus)   |
+| `agents.md`                        | Stack, structure et conventions du projet                       |
 
 ## Lancer en local
 
-Prérequis : Node.js 22 (via nvm).
+Prérequis : Node.js 22 (via nvm). Le dépôt n'impose pas de version (ni `.nvmrc` ni champ `engines`).
 
 ### Back (API)
 
@@ -100,23 +142,50 @@ npm run deploy                                # wrangler deploy
 ```
 
 Toute nouvelle origine du front doit être ajoutée à `ALLOWED_ORIGINS` dans
-`workers/src/index.ts`.
+`workers/src/index.ts`. Origines autorisées aujourd'hui : `https://bino-fit.vercel.app`,
+`http://localhost:5173` et `https://binofit-a36cf.web.app` (ancien hébergement Firebase).
 
 ### Front (Vercel)
 
-`public/vercel.json` redirige toutes les routes vers `index.html` (routeur Vue).
-La commande de build est `npm run build` (dans `public/`), qui produit `dist/`.
+Configuration du projet Vercel :
 
-> À compléter : configuration du projet Vercel (dossier racine, déclenchement des
-> déploiements, variables `VITE_*` définies dans Vercel).
+- projet importé depuis le dépôt GitHub ;
+- **Root Directory** : `public` ;
+- **Framework Preset** : Vite (build `npm run build`, soit `vue-tsc -b && vite build`,
+  qui produit `dist/`) ;
+- variables d'environnement du projet : les six `VITE_FIREBASE_*` et `VITE_API_BASE_URL`
+  (liste ci-dessous) ;
+- `public/vercel.json` réécrit toutes les routes vers `index.html` (routeur Vue).
+
+Le domaine `https://bino-fit.vercel.app` doit figurer :
+
+- dans les domaines autorisés de Firebase Authentication (Authentication > Settings >
+  Authorized domains), sinon le lien magique est refusé ;
+- dans `ALLOWED_ORIGINS` de `workers/src/index.ts` (c'est le cas), sinon le CORS de l'API
+  bloque les appels.
+
+> À compléter : déclenchement des déploiements (branche de production, previews).
+
+`public/firebase.json` et `public/.firebaserc` (ancien hébergement Firebase Hosting) sont
+toujours présents.
 
 ### Base de données (Supabase)
 
 Le schéma de référence est `specs/schema.sql`.
 
-> À compléter : procédure d'application du schéma sur le projet Supabase.
+1. Dans le tableau de bord Supabase, ouvrir **SQL Editor**, coller le contenu de
+   `specs/schema.sql` et cliquer **Run**.
+2. Remplir la base avec les données de test, depuis `workers/` :
 
-Données de test : `workers/scripts/seed.mjs` (voir `workers/README.md`).
+   ```bash
+   node --env-file=.dev.vars scripts/seed.mjs
+   ```
+
+   Le script lit `SUPABASE_URL` et `SUPABASE_SECRET_KEY` dans l'environnement.
+   `.dev.vars.example` ne contient que la clé : `SUPABASE_URL` (valeur de
+   `workers/wrangler.toml`) doit donc aussi figurer dans `.dev.vars`, ou être passée
+   devant la commande (`SUPABASE_URL=https://<ref>.supabase.co node --env-file=.dev.vars scripts/seed.mjs`).
+   Détails dans `workers/README.md`.
 
 ## Variables d'environnement
 
@@ -127,7 +196,7 @@ Données de test : `workers/scripts/seed.mjs` (voir `workers/README.md`).
 | `SUPABASE_SECRET_KEY` | secret Wrangler / `.dev.vars` (local)       | Clé secrète Supabase, accès complet à la base. Ne jamais la commiter. |
 | `SUPABASE_URL`        | `wrangler.toml` (`[vars]`)                  | URL du projet Supabase                                               |
 | `FIREBASE_PROJECT_ID` | `wrangler.toml` (`[vars]`)                  | Vérification des jetons Firebase (audience et émetteur)              |
-| `ENVIRONMENT`         | `wrangler.toml` (`[vars]`)                  | Nom de l'environnement                                               |
+| `ENVIRONMENT`         | `wrangler.toml` (`[vars]`)                  | Nom de l'environnement (`development`), déclaré dans `env.ts` mais lu nulle part dans le code |
 
 ### Front (`public/.env`, et variables du projet Vercel)
 

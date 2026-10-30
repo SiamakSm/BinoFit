@@ -45,8 +45,13 @@ Avec jeton Firebase :
 | POST    | `/favorites`                   | Ajoute un utilisateur ou une activité en favori (409 si déjà présent)                  |
 | DELETE  | `/favorites/{targetId}`        | Retire un favori                                                                       |
 
+Soit 16 routes : 3 publiques et 13 protégées. `POST /activities`, `POST /conversations` et
+`POST /favorites` exigent en plus que l'utilisateur ait déjà un profil (ligne dans `users`),
+sinon `403 profile_required` (`src/middleware/profile.ts`).
+
 Erreurs : `{ "error": "<message>", "code": "<code>" }` (ex. `missing_token`, `invalid_token`,
-`token_expired`, `forbidden`, `not_found`, `database_error`).
+`token_expired`, `forbidden`, `profile_required`, `not_found`, `database_error`).
+Toute route inconnue renvoie `404 not_found`.
 
 ## Lancer en local
 
@@ -66,11 +71,18 @@ Insère des données fictives autour de Lyon : 35 utilisateurs (`user-001`…), 
 créneaux, 90 activités, 12 conversations avec leurs messages et 20 favoris. Le script est
 relançable sans créer de doublons (ids fixes, upsert).
 
+Prérequis : tables créées dans Supabase (SQL Editor > coller `specs/schema.sql` > Run).
+
 ```bash
-SUPABASE_URL=https://<ref>.supabase.co node --env-file=.dev.vars scripts/seed.mjs
+node --env-file=.dev.vars scripts/seed.mjs
 ```
 
-La clé est lue dans `.dev.vars` sans être affichée ; l'URL est celle de `wrangler.toml`.
+Le script lit `SUPABASE_URL` et `SUPABASE_SECRET_KEY` dans l'environnement, sans les
+afficher. `.dev.vars.example` ne contient que la clé : ajouter aussi `SUPABASE_URL` (la
+valeur de `wrangler.toml`) dans `.dev.vars`, ou la passer devant la commande :
+`SUPABASE_URL=https://<ref>.supabase.co node --env-file=.dev.vars scripts/seed.mjs`.
+`npm run seed` lance le même script mais sans `--env-file` : les deux variables doivent
+alors déjà être exportées.
 
 ### 2. Obtenir un jeton : `scripts/get-test-token.mjs`
 

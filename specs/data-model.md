@@ -1,7 +1,7 @@
 # BINOFIT — Modèle de données
 
 Ce document décrit les entités métier de BINOFIT, leurs champs, et leur stockage
-(voir `AGENTS.md`). Le schéma de référence est `/specs/schema.sql`.
+(voir `agents.md`). Le schéma de référence est `/specs/schema.sql`.
 
 - **Supabase Postgres** (projet hébergé à Paris) → les 8 tables : `users`, `user_sports`,
   `user_availability`, `activities`, `conversations`, `participants`, `messages`, `favorites`
@@ -224,8 +224,8 @@ Format des erreurs de l'API : `{ "error": "<message>", "code": "<code>" }`.
 valide par un utilisateur qui n'a pas encore de ligne dans `users` (profil non créé via
 `PUT /users/{id}`).
 
-
 Cette erreur est renvoyée avant toute autre vérification par `POST /activities`,
 `POST /conversations` et `POST /favorites` (middleware `workers/src/middleware/profile.ts`).
 Réponse : `403 { "error": "Complète ton profil pour continuer", "code": "profile_required" }`.
-Le front doit alors rediriger vers l'écran Profil. Les autres 403 de l'API portent le code `forbidden`.
+Le front doit alors rediriger vers l'écran Profil ; cette redirection n'est pas encore
+implémentée dans `public/`. Les autres 403 de l'API portent le code `forbidden`.
