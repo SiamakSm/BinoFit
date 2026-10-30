@@ -157,13 +157,14 @@ Toute nouvelle origine du front doit être ajoutée à `ALLOWED_ORIGINS` dans
 
 Configuration du projet Vercel :
 
-- projet importé depuis le dépôt GitHub ;
+- le front est construit par Vercel depuis le fork GitHub `SiamakSm/BinoFit`, branche `main` ;
 - **Root Directory** : `public` ;
 - **Framework Preset** : Vite (build `npm run build`, soit `vue-tsc -b && vite build`,
   qui produit `dist/`) ;
 - variables d'environnement du projet : les six `VITE_FIREBASE_*` et `VITE_API_BASE_URL`
   (liste ci-dessous) ;
-- `public/vercel.json` réécrit toutes les routes vers `index.html` (routeur Vue).
+- `public/vercel.json` réécrit toutes les routes vers `/index.html` (routeur Vue), pour que
+  les URL comme `/connexion` fonctionnent aussi en accès direct ou après rechargement.
 
 Le domaine `https://bino-fit.vercel.app` doit figurer :
 
@@ -172,7 +173,13 @@ Le domaine `https://bino-fit.vercel.app` doit figurer :
 - dans `ALLOWED_ORIGINS` de `workers/src/index.ts` (c'est le cas), sinon le CORS de l'API
   bloque les appels.
 
-> À compléter : déclenchement des déploiements (branche de production, previews).
+Déploiements et previews :
+
+- les URL de preview Vercel sont refusées par le CORS de l'API (elles ne figurent pas dans
+  `ALLOWED_ORIGINS` de `workers/src/index.ts`) : pour tester une branche, lancer le front
+  en local sur `http://localhost:5173` ;
+- après un merge dans le dépôt officiel (`fatma-gmr/m2gdp-SPO`), le fork est mis à jour
+  avec `git push myfork main`, ce qui relance le build Vercel.
 
 `public/firebase.json` et `public/.firebaserc` (ancien hébergement Firebase Hosting) sont
 toujours présents.
@@ -240,9 +247,19 @@ Noms seulement : aucune valeur ne doit figurer dans le dépôt.
 
 ## Limites Cloudflare
 
-> À compléter : offre Cloudflare Workers utilisée et limites applicables (nombre de
-> requêtes par jour, temps CPU par requête…). Aucune de ces informations ne figure dans
-> le dépôt (`workers/wrangler.toml` ne déclare ni offre ni limite).
+Le Worker est sur l'offre gratuite de Cloudflare Workers, limitée à 100 000 requêtes par
+jour. Pour rester sous cette limite, le front doit interroger l'API par un polling
+raisonnable :
+
+| Écran                                   | Fréquence             |
+| --------------------------------------- | --------------------- |
+| Conversation ouverte (`/messages/:id`)  | toutes les 3 secondes |
+| Listes (activités, conversations)       | toutes les 10 secondes |
+
+Le polling ne tourne que lorsque l'onglet du navigateur est visible.
+
+> Ce polling est prévu mais pas encore implémenté dans `public/` (travail de DEV1) :
+> aujourd'hui, les écrans chargent leurs données uniquement à l'ouverture.
 
 ## Reste à faire
 
