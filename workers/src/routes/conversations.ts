@@ -18,6 +18,7 @@ import {
 } from '../lib/dbMapper'
 import { databaseError, getSupabase, rowExists, unwrap } from '../lib/supabase'
 import { firebaseAuth } from '../middleware/auth'
+import { requireProfile } from '../middleware/profile'
 
 const MESSAGES_DEFAULT_LIMIT = 50
 const MESSAGES_MAX_LIMIT = 200
@@ -41,7 +42,7 @@ conversationsRoute.get('/', async (c) => {
  * Si la conversation existe déjà (même paire, même activité), elle est renvoyée (200)
  * au lieu d'en créer un doublon (201).
  */
-conversationsRoute.post('/', async (c) => {
+conversationsRoute.post('/', requireProfile(), async (c) => {
   const authUser = c.get('authUser')
 
   const body = await c.req.json().catch(() => {

@@ -12,6 +12,7 @@ import { ApiError } from '../lib/apiError'
 import { ACTIVITY_SELECT, activityCreateToRow, rowToActivity, type ActivityRow } from '../lib/dbMapper'
 import { getSupabase, rowExists, unwrap } from '../lib/supabase'
 import { firebaseAuth } from '../middleware/auth'
+import { requireProfile } from '../middleware/profile'
 
 export const activitiesRoute = new Hono<AppBindings>()
 
@@ -22,7 +23,7 @@ activitiesRoute.use('*', firebaseAuth())
  * POST /activities — `createdBy` est l'utilisateur du jeton, le statut initial est
  * toujours `en_attente`.
  */
-activitiesRoute.post('/', async (c) => {
+activitiesRoute.post('/', requireProfile(), async (c) => {
   const authUser = c.get('authUser')
 
   const body = await c.req.json().catch(() => {

@@ -9,6 +9,7 @@ import { ApiError } from '../lib/apiError'
 import { FAVORITE_SELECT, rowToFavorite, type FavoriteRow } from '../lib/dbMapper'
 import { UNIQUE_VIOLATION, databaseError, getSupabase, rowExists, unwrap } from '../lib/supabase'
 import { firebaseAuth } from '../middleware/auth'
+import { requireProfile } from '../middleware/profile'
 import { FAVORITE_TARGET_TYPES, type FavoriteTargetType } from '../types'
 
 const TARGET_TABLES: Record<FavoriteTargetType, 'users' | 'activities'> = {
@@ -36,7 +37,7 @@ favoritesRoute.get('/', async (c) => {
 })
 
 /** POST /favorites — un couple (userId, targetType, targetId) est unique (409 sinon). */
-favoritesRoute.post('/', async (c) => {
+favoritesRoute.post('/', requireProfile(), async (c) => {
   const authUser = c.get('authUser')
 
   const body = await c.req.json().catch(() => {
