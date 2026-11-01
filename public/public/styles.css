@@ -311,7 +311,7 @@ img { display: block; max-width: 100%; }
 .reveal.is-visible { opacity: 1; transform: none; }
 
 @media (max-width: 600px) {
-  .site-nav { display: none; }
+  .site-nav { width: 100%; }
   .hero { padding: 40px 0 48px; }
   .h2 { font-size: 26px; }
   .banner__copy h2 { font-size: 28px; }
