@@ -143,6 +143,10 @@ Pour utiliser l'API locale, `VITE_API_BASE_URL` pointe vers `http://localhost:87
 
 ### API (Cloudflare Workers)
 
+Appliquer la migration dans Supabase avant de déployer le Worker : sur une base créée
+avant l'ajout de `sexe` et `birth_date`, exécuter
+`specs/migrations/2026-11-01-sexe-birth-date.sql` dans **SQL Editor** (idempotent).
+
 ```bash
 cd workers
 npx wrangler secret put SUPABASE_SECRET_KEY   # une seule fois, ou pour changer la clé
