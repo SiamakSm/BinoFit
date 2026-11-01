@@ -57,4 +57,24 @@
   if (document.fonts && document.fonts.ready) {
     document.fonts.ready.then(function () { place(activeLink(), false); });
   }
+
+  // Menu mobile : bouton hamburger qui ouvre/ferme le panneau de navigation.
+  var toggle = document.querySelector('.nav-toggle');
+  var header = document.querySelector('.site-header');
+  if (toggle && header) {
+    function setOpen(open) {
+      header.classList.toggle('is-menu-open', open);
+      toggle.setAttribute('aria-expanded', String(open));
+      toggle.setAttribute('aria-label', open ? 'Fermer le menu' : 'Ouvrir le menu');
+    }
+    toggle.addEventListener('click', function () {
+      setOpen(toggle.getAttribute('aria-expanded') !== 'true');
+    });
+    document.addEventListener('keydown', function (event) {
+      if (event.key === 'Escape') setOpen(false);
+    });
+    links.forEach(function (link) {
+      link.addEventListener('click', function () { setOpen(false); });
+    });
+  }
 })();
