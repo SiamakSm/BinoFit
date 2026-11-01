@@ -19,7 +19,8 @@
     <a href="index.html" class="brand" aria-label="BINOFIT, accueil">
       <img src="assets/logo-binofit-horizontal.png" alt="BINOFIT" style="height:48px;width:auto;display:block">
     </a>
-    <nav class="site-nav" aria-label="Navigation principale">
+    <button class="nav-toggle" type="button" aria-expanded="false" aria-controls="site-nav" aria-label="Ouvrir le menu"><span></span><span></span><span></span></button>
+    <nav class="site-nav" id="site-nav" aria-label="Navigation principale">
       <ul class="site-nav__list">
         <li><a href="index.html" aria-current="page" class="is-current">Accueil</a></li>
         <li><a href="maquette.html">Maquette</a></li>
@@ -96,7 +97,9 @@
       <h2 class="h2">Tous les sports, un seul réflexe</h2>
       <p>Les disciplines proposées dans l’application.</p>
     </div>
-    <div class="sports">
+    <div class="sports-marquee">
+      <div class="sports-marquee__track">
+        <div class="sports__group">
       <div class="sport"><div class="icon-box"><img src="assets/sport-running.png" alt="" style="width:100%;height:100%;object-fit:contain;display:block"></div>Running</div>
       <div class="sport"><div class="icon-box"><img src="assets/sport-velo.png" alt="" style="width:100%;height:100%;object-fit:contain;display:block"></div>Vélo</div>
       <div class="sport"><div class="icon-box"><img src="assets/sport-tennis.png" alt="" style="width:100%;height:100%;object-fit:contain;display:block"></div>Tennis</div>
@@ -107,6 +110,20 @@
       <div class="sport"><div class="icon-box"><img src="assets/sport-basket.png" alt="" style="width:100%;height:100%;object-fit:contain;display:block"></div>Basket</div>
       <div class="sport"><div class="icon-box"><img src="assets/sport-boxe.png" alt="" style="width:100%;height:100%;object-fit:contain;display:block"></div>Boxe</div>
       <div class="sport"><div class="icon-box"><img src="assets/sport-crossfit.png" alt="" style="width:100%;height:100%;object-fit:contain;display:block"></div>CrossFit</div>
+        </div>
+        <div class="sports__group" aria-hidden="true">
+      <div class="sport"><div class="icon-box"><img src="assets/sport-running.png" alt="" style="width:100%;height:100%;object-fit:contain;display:block"></div>Running</div>
+      <div class="sport"><div class="icon-box"><img src="assets/sport-velo.png" alt="" style="width:100%;height:100%;object-fit:contain;display:block"></div>Vélo</div>
+      <div class="sport"><div class="icon-box"><img src="assets/sport-tennis.png" alt="" style="width:100%;height:100%;object-fit:contain;display:block"></div>Tennis</div>
+      <div class="sport"><div class="icon-box"><img src="assets/sport-yoga.png" alt="" style="width:100%;height:100%;object-fit:contain;display:block"></div>Yoga</div>
+      <div class="sport"><div class="icon-box"><img src="assets/sport-musculation.png" alt="" style="width:100%;height:100%;object-fit:contain;display:block"></div>Musculation</div>
+      <div class="sport"><div class="icon-box"><img src="assets/sport-natation.png" alt="" style="width:100%;height:100%;object-fit:contain;display:block"></div>Natation</div>
+      <div class="sport"><div class="icon-box"><img src="assets/sport-football.png" alt="" style="width:100%;height:100%;object-fit:contain;display:block"></div>Football</div>
+      <div class="sport"><div class="icon-box"><img src="assets/sport-basket.png" alt="" style="width:100%;height:100%;object-fit:contain;display:block"></div>Basket</div>
+      <div class="sport"><div class="icon-box"><img src="assets/sport-boxe.png" alt="" style="width:100%;height:100%;object-fit:contain;display:block"></div>Boxe</div>
+      <div class="sport"><div class="icon-box"><img src="assets/sport-crossfit.png" alt="" style="width:100%;height:100%;object-fit:contain;display:block"></div>CrossFit</div>
+        </div>
+      </div>
     </div>
   </section>
 
