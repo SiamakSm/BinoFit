@@ -97,9 +97,6 @@ onMounted(async () => {
 
       <template v-else-if="conversations.length === 0">
         <section class="empty">
-          <div class="empty__art" aria-hidden="true">
-            <span class="empty__bubble">Le sport<br />crée du lien !</span>
-          </div>
           <div class="empty__body">
             <h2>Aucune conversation pour l’instant</h2>
             <p>Contacte un sportif depuis son profil pour planifier ta première séance.</p>
@@ -214,27 +211,6 @@ onMounted(async () => {
   background: var(--color-surface);
   border: 1px solid var(--color-border);
   overflow: hidden;
-}
-
-.empty__art {
-  position: relative;
-  height: 170px;
-  background: var(--color-lime-soft);
-}
-
-.empty__bubble {
-  position: absolute;
-  top: 16px;
-  right: 16px;
-  padding: 10px 14px;
-  border-radius: 16px;
-  background: var(--color-surface);
-  box-shadow: 0 8px 20px rgba(18, 21, 18, 0.1);
-  color: var(--color-text);
-  font-family: var(--font-sans);
-  font-weight: 800;
-  font-size: 15px;
-  line-height: 1.2;
 }
 
 .empty__body {
