@@ -347,8 +347,13 @@ onBeforeUnmount(() => {
 .map-chip--select {
   appearance: none;
   -webkit-appearance: none;
+  margin: 0;
+  font-family: inherit;
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 1.2;
+  height: auto;
   cursor: pointer;
-  padding-right: 14px;
 }
 
 .map-chip.is-active {
