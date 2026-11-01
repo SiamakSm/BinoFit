@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import { computed, onMounted, reactive, ref } from 'vue'
-import { RouterLink, useRouter } from 'vue-router'
-import { SquarePen } from 'lucide-vue-next'
+import { RouterLink } from 'vue-router'
 import { useAuth } from '../composables/useAuth'
 import { api } from '../services/api'
 import { formatTime, formatDate } from '../services/format'
@@ -9,12 +8,6 @@ import { getUserCached } from '../services/users'
 import type { Conversation } from '../types/api'
 
 const { user } = useAuth()
-const router = useRouter()
-
-// Un message se démarre depuis la fiche d'un athlète : on part de Découvrir pour choisir.
-function newMessage() {
-  router.push({ name: 'decouvrir' })
-}
 
 const conversations = ref<Conversation[]>([])
 const names = reactive<Record<string, { firstName: string; lastName: string }>>({})
@@ -68,9 +61,6 @@ onMounted(async () => {
       <div class="messages__col">
       <header class="messages__head">
         <h1>Messages</h1>
-        <button type="button" class="icon-btn icon-btn--primary" aria-label="Nouveau message" @click="newMessage">
-          <SquarePen :size="18" aria-hidden="true" />
-        </button>
       </header>
 
       <div class="segmented" role="tablist" aria-label="Type de messages">
