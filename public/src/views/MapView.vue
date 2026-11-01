@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { nextTick, onBeforeUnmount, onMounted, ref } from 'vue'
+import { nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { RouterLink } from 'vue-router'
 import L from 'leaflet'
 import 'leaflet/dist/leaflet.css'
@@ -10,7 +10,7 @@ import { LEVEL_LABELS, SPORT_LABELS } from '../services/labels'
 import { formatDistance, initials } from '../services/format'
 import { DEFAULT_RADIUS_KM, centerOf } from '../services/location'
 import { fetchUser } from '../services/users'
-import type { UserSearchResult } from '../types/api'
+import type { GeoPoint, Level, Sport, UserSearchParams, UserSearchResult } from '../types/api'
 
 const { user } = useAuth()
 
@@ -21,58 +21,118 @@ const people = ref<UserSearchResult[]>([])
 const loading = ref(true)
 const errorMessage = ref('')
 let map: L.Map | null = null
+let markers: L.LayerGroup | null = null
+let circle: L.Circle | null = null
+let centerPoint: GeoPoint = centerOf(null)
+/** Numéro de la dernière requête : évite qu'une réponse ancienne écrase une plus récente. */
+let requestId = 0
+
+/** Filtres de la carte, branchés sur GET /users. */
+const RADIUS_OPTIONS = [2, 5, 10, 20]
+const SPORTS = Object.keys(SPORT_LABELS) as Sport[]
+const LEVELS = Object.keys(LEVEL_LABELS) as Level[]
+const radiusKm = ref(DEFAULT_RADIUS_KM)
+const sportFilter = ref<Sport | ''>('')
+const levelFilter = ref<Level | ''>('')
+
+function escapeAttr(value: string): string {
+  return value.replace(/[&"<>]/g, (ch) => ({ '&': '&amp;', '"': '&quot;', '<': '&lt;', '>': '&gt;' })[ch] ?? ch)
+}
 
 function pinIcon(p: UserSearchResult) {
   return L.divIcon({
     className: 'binofit-pin-wrap',
-    html: `<div class="binofit-pin">${initials(p.firstName, p.lastName)}</div>`,
+    html: `<div class="binofit-pin">${p.avatarUrl ? `<img src="${escapeAttr(p.avatarUrl)}" alt="" />` : initials(p.firstName, p.lastName)}</div>`,
     iconSize: [40, 40],
     iconAnchor: [20, 20],
   })
 }
 
+/** Dessine le rayon autour du centre de recherche. */
+function drawRadius() {
+  if (!map) return
+  circle?.remove()
+  circle = L.circle([centerPoint.lat, centerPoint.lng], {
+    radius: radiusKm.value * 1000,
+    color: '#178A2E',
+    weight: 1,
+    dashArray: '6 6',
+    fillColor: '#178A2E',
+    fillOpacity: 0.06,
+  }).addTo(map)
+}
+
+/** Charge les sportifs autour du centre, selon le rayon et les filtres, et redessine la carte. */
+async function load() {
+  if (!map) return
+  const id = ++requestId
+  loading.value = true
+  errorMessage.value = ''
+  try {
+    const uid = user.value?.uid
+    const params: UserSearchParams = {
+      lat: centerPoint.lat,
+      lng: centerPoint.lng,
+      maxKm: radiusKm.value,
+    }
+    if (sportFilter.value) params.sport = sportFilter.value
+    if (levelFilter.value) params.level = levelFilter.value
+    const results = await api.searchUsers(params)
+    if (id !== requestId) return
+    people.value = results.filter((p) => p.id !== uid)
+    markers?.clearLayers()
+    for (const p of people.value) {
+      L.marker([p.location.lat, p.location.lng], { icon: pinIcon(p), title: p.firstName })
+        .on('click', () => {
+          selected.value = p
+        })
+        .addTo(markers!)
+    }
+    if (selected.value && !people.value.some((p) => p.id === selected.value?.id)) {
+      selected.value = null
+    }
+    drawRadius()
+  } catch (error) {
+    if (id !== requestId) return
+    errorMessage.value = error instanceof Error ? error.message : 'Impossible de charger la carte.'
+  } finally {
+    if (id === requestId) loading.value = false
+  }
+}
+
+/** « Me localiser » : recentre la carte sur la localisation de votre profil. */
+async function locate() {
+  const uid = user.value?.uid
+  const me = uid ? await fetchUser(uid) : null
+  centerPoint = centerOf(me)
+  map?.setView([centerPoint.lat, centerPoint.lng], 13)
+  await load()
+}
+
+watch([radiusKm, sportFilter, levelFilter], () => {
+  void load()
+})
+
 onMounted(async () => {
   try {
     const uid = user.value?.uid
     const me = uid ? await fetchUser(uid) : null
-    const center = centerOf(me)
+    centerPoint = centerOf(me)
     if (!mapEl.value) return
 
-    map = L.map(mapEl.value, { zoomControl: false }).setView([center.lat, center.lng], 13)
+    map = L.map(mapEl.value, { zoomControl: false }).setView([centerPoint.lat, centerPoint.lng], 13)
     L.control.zoom({ position: 'bottomright' }).addTo(map)
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
       maxZoom: 19,
       attribution: '© OpenStreetMap',
     }).addTo(map)
-    L.circle([center.lat, center.lng], {
-      radius: DEFAULT_RADIUS_KM * 1000,
-      color: '#178A2E',
-      weight: 1,
-      dashArray: '6 6',
-      fillColor: '#178A2E',
-      fillOpacity: 0.06,
-    }).addTo(map)
+    markers = L.layerGroup().addTo(map)
 
-    const results = await api.searchUsers({
-      lat: center.lat,
-      lng: center.lng,
-      maxKm: DEFAULT_RADIUS_KM,
-    })
-    people.value = results.filter((p) => p.id !== uid)
-    for (const p of results) {
-      if (p.id === uid) continue
-      L.marker([p.location.lat, p.location.lng], { icon: pinIcon(p), title: p.firstName })
-        .on('click', () => {
-          selected.value = p
-        })
-        .addTo(map)
-    }
-
+    await load()
     await nextTick()
     map.invalidateSize()
   } catch (error) {
     errorMessage.value = error instanceof Error ? error.message : 'Impossible de charger la carte.'
-  } finally {
     loading.value = false
   }
 })
@@ -88,7 +148,7 @@ onBeforeUnmount(() => {
     <!-- Liste latérale (desktop uniquement) -->
     <aside class="map-list" aria-label="Sportifs proches">
       <h2>Carte</h2>
-      <p class="map-list__count">{{ people.length }} sportifs · {{ DEFAULT_RADIUS_KM }} km</p>
+      <p class="map-list__count">{{ people.length }} sportifs · {{ radiusKm }} km</p>
       <button
         v-for="p in people"
         :key="p.id"
@@ -97,7 +157,10 @@ onBeforeUnmount(() => {
         :class="{ 'is-active': selected?.id === p.id }"
         @click="selected = p"
       >
-        <span class="avatar map-list__avatar">{{ initials(p.firstName, p.lastName) }}</span>
+        <span class="avatar map-list__avatar">
+          <img v-if="p.avatarUrl" :src="p.avatarUrl" alt="" />
+          <template v-else>{{ initials(p.firstName, p.lastName) }}</template>
+        </span>
         <span class="map-list__who">
           <strong>{{ p.firstName }}</strong>
           <small v-if="p.sports[0]">{{ SPORT_LABELS[p.sports[0].sport] }} · {{ LEVEL_LABELS[p.sports[0].level] }}</small>
@@ -120,14 +183,22 @@ onBeforeUnmount(() => {
           <Search :size="18" aria-hidden="true" />
           <input type="search" placeholder="Lyon · Presqu'île" aria-label="Lieu de recherche" />
         </label>
-        <button type="button" class="map-search__locate" aria-label="Me localiser">
+        <button type="button" class="map-search__locate" aria-label="Me localiser" @click="locate">
           <LocateFixed :size="18" aria-hidden="true" />
         </button>
       </div>
       <div class="map-chips">
-        <span class="map-chip is-active">Rayon {{ DEFAULT_RADIUS_KM }} km</span>
-        <span class="map-chip">Tous les sports</span>
-        <span class="map-chip">Tous niveaux</span>
+        <select v-model.number="radiusKm" class="map-chip map-chip--select is-active" aria-label="Rayon de recherche">
+          <option v-for="km in RADIUS_OPTIONS" :key="km" :value="km">Rayon {{ km }} km</option>
+        </select>
+        <select v-model="sportFilter" class="map-chip map-chip--select" aria-label="Sport">
+          <option value="">Tous les sports</option>
+          <option v-for="sport in SPORTS" :key="sport" :value="sport">{{ SPORT_LABELS[sport] }}</option>
+        </select>
+        <select v-model="levelFilter" class="map-chip map-chip--select" aria-label="Niveau">
+          <option value="">Tous niveaux</option>
+          <option v-for="level in LEVELS" :key="level" :value="level">{{ LEVEL_LABELS[level] }}</option>
+        </select>
       </div>
       <div v-if="errorMessage" class="alert alert-error">{{ errorMessage }}</div>
     </div>
@@ -271,6 +342,21 @@ onBeforeUnmount(() => {
   font-size: 14px;
   font-weight: 600;
   box-shadow: 0 4px 12px rgba(18, 21, 18, 0.06);
+}
+
+.map-chip--select {
+  appearance: none;
+  -webkit-appearance: none;
+  width: auto;
+  margin: 0;
+  padding: 8px 14px;
+  background-image: none;
+  font-family: inherit;
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 1.2;
+  height: auto;
+  cursor: pointer;
 }
 
 .map-chip.is-active {
@@ -470,6 +556,14 @@ onBeforeUnmount(() => {
 
 <style>
 /* Marqueurs Leaflet (HTML injecté par divIcon, donc hors du scope du composant). */
+.binofit-pin img {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  object-fit: cover;
+  display: block;
+}
+
 .binofit-pin-wrap {
   background: transparent;
   border: none;

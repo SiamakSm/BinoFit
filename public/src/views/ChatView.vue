@@ -4,6 +4,7 @@ import { computed, nextTick, onMounted, ref } from 'vue'
 import { RouterLink, useRoute, useRouter } from 'vue-router'
 import { ArrowLeft, Send } from 'lucide-vue-next'
 import { useAuth } from '../composables/useAuth'
+import { useUnread } from '../composables/useUnread'
 import { api, ApiError } from '../services/api'
 import { formatTime } from '../services/format'
 import { fetchUser } from '../services/users'
@@ -30,6 +31,8 @@ function scrollToEnd() {
   })
 }
 
+const { markSeen, requestNotificationPermission } = useUnread()
+
 async function load() {
   try {
     const conversations = await api.listConversations()
@@ -38,6 +41,7 @@ async function load() {
       errorMessage.value = 'Cette conversation est introuvable.'
       return
     }
+    markSeen(conversation)
     const otherId = conversation.participantIds.find((id) => id !== uid.value) ?? ''
     other.value = await fetchUser(otherId)
     const list = await api.listMessages(conversationId.value, { limit: 100 })
@@ -53,6 +57,7 @@ async function load() {
 async function send() {
   const text = draft.value.trim()
   if (!text || sending.value) return
+  requestNotificationPermission()
   sending.value = true
   errorMessage.value = ''
   try {
@@ -81,6 +86,7 @@ onMounted(load)
         :to="{ name: 'athlete', params: { id: other.id } }"
         class="chat__title"
       >
+        <img v-if="other.avatarUrl" class="chat__avatar" :src="other.avatarUrl" alt="" />
         {{ other.firstName }} {{ other.lastName }}
       </RouterLink>
     </header>
@@ -125,6 +131,14 @@ onMounted(load)
 </template>
 
 <style scoped>
+.chat__avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  object-fit: cover;
+  margin-right: 8px;
+  vertical-align: middle;
+}
 .chat {
   min-height: 100svh;
   display: flex;

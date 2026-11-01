@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import { computed, onMounted, reactive, ref } from 'vue'
 import { RouterLink } from 'vue-router'
-import { SquarePen } from 'lucide-vue-next'
 import { useAuth } from '../composables/useAuth'
 import { api } from '../services/api'
 import { formatTime, formatDate } from '../services/format'
@@ -11,7 +10,7 @@ import type { Conversation } from '../types/api'
 const { user } = useAuth()
 
 const conversations = ref<Conversation[]>([])
-const names = reactive<Record<string, { firstName: string; lastName: string }>>({})
+const names = reactive<Record<string, { firstName: string; lastName: string; avatarUrl: string | null }>>({})
 const loading = ref(true)
 const errorMessage = ref('')
 const tab = ref<'conversations' | 'demandes'>('conversations')
@@ -25,6 +24,10 @@ function otherId(c: Conversation): string {
 function otherName(c: Conversation): string {
   const n = names[otherId(c)]
   return n ? `${n.firstName} ${n.lastName}` : '…'
+}
+
+function otherAvatar(c: Conversation): string | null {
+  return names[otherId(c)]?.avatarUrl ?? null
 }
 
 function otherInitials(c: Conversation): string {
@@ -45,7 +48,7 @@ onMounted(async () => {
     await Promise.all(
       [...new Set(list.map(otherId))].map(async (id) => {
         const profile = await getUserCached(id)
-        if (profile) names[id] = { firstName: profile.firstName, lastName: profile.lastName }
+        if (profile) names[id] = { firstName: profile.firstName, lastName: profile.lastName, avatarUrl: profile.avatarUrl ?? null }
       }),
     )
   } catch (error) {
@@ -62,9 +65,6 @@ onMounted(async () => {
       <div class="messages__col">
       <header class="messages__head">
         <h1>Messages</h1>
-        <button type="button" class="icon-btn icon-btn--primary" aria-label="Nouveau message">
-          <SquarePen :size="18" aria-hidden="true" />
-        </button>
       </header>
 
       <div class="segmented" role="tablist" aria-label="Type de messages">
@@ -101,9 +101,6 @@ onMounted(async () => {
 
       <template v-else-if="conversations.length === 0">
         <section class="empty">
-          <div class="empty__art" aria-hidden="true">
-            <span class="empty__bubble">Le sport<br />crée du lien !</span>
-          </div>
           <div class="empty__body">
             <h2>Aucune conversation pour l’instant</h2>
             <p>Contacte un sportif depuis son profil pour planifier ta première séance.</p>
@@ -115,7 +112,10 @@ onMounted(async () => {
       <ul v-else class="convo-list">
         <li v-for="c in conversations" :key="c.id">
           <RouterLink :to="{ name: 'conversation', params: { id: c.id } }" class="convo">
-            <div class="avatar convo__avatar">{{ otherInitials(c) }}</div>
+            <div class="avatar convo__avatar">
+              <img v-if="otherAvatar(c)" :src="otherAvatar(c) ?? undefined" alt="" />
+              <template v-else>{{ otherInitials(c) }}</template>
+            </div>
             <div class="convo__body">
               <div class="convo__top">
                 <strong>{{ otherName(c) }}</strong>
@@ -218,27 +218,6 @@ onMounted(async () => {
   background: var(--color-surface);
   border: 1px solid var(--color-border);
   overflow: hidden;
-}
-
-.empty__art {
-  position: relative;
-  height: 170px;
-  background: var(--color-lime-soft);
-}
-
-.empty__bubble {
-  position: absolute;
-  top: 16px;
-  right: 16px;
-  padding: 10px 14px;
-  border-radius: 16px;
-  background: var(--color-surface);
-  box-shadow: 0 8px 20px rgba(18, 21, 18, 0.1);
-  color: var(--color-text);
-  font-family: var(--font-sans);
-  font-weight: 800;
-  font-size: 15px;
-  line-height: 1.2;
 }
 
 .empty__body {

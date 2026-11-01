@@ -49,10 +49,7 @@ onMounted(() => {
 <template>
   <div class="screen">
     <div class="screen__inner">
-      <div class="brand">
-        <div class="brand__mark">B</div>
-        <div class="brand__name">BINO<span>FIT</span></div>
-      </div>
+      <img class="brand-logo" src="/assets/logo-binofit-stacked.png" alt="BINOFIT, le sport c’est mieux à deux">
 
       <div v-if="status === 'checking' || status === 'signing-in'" class="confirm-box">
         <span class="spinner spinner--muted" style="width: 28px; height: 28px"></span>
