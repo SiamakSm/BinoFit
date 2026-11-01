@@ -347,7 +347,10 @@ onBeforeUnmount(() => {
 .map-chip--select {
   appearance: none;
   -webkit-appearance: none;
+  width: auto;
   margin: 0;
+  padding: 8px 14px;
+  background-image: none;
   font-family: inherit;
   font-size: 14px;
   font-weight: 600;
