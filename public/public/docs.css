@@ -361,3 +361,17 @@ td:first-child { color: var(--ink); font-weight: 600; }
   .site-nav__indicator { display: none; }
   .site-header__inner { position: relative; }
 }
+
+/* Cartes des sports : défilement continu (section « Tous les sports ») */
+.sports-marquee { overflow: hidden; margin: 0 -20px; padding: 4px 0 12px; }
+.sports-marquee__track { display: flex; width: max-content; animation: sports-marquee-scroll 30s linear infinite; }
+.sports-marquee:hover .sports-marquee__track { animation-play-state: paused; }
+.sports__group { display: flex; gap: 12px; padding-right: 12px; flex-shrink: 0; }
+@keyframes sports-marquee-scroll {
+  from { transform: translateX(0); }
+  to { transform: translateX(-50%); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .sports-marquee { overflow-x: auto; }
+  .sports-marquee__track { animation: none; }
+}
