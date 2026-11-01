@@ -2,6 +2,9 @@
 import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { useRoute } from 'vue-router'
 import { Compass, Map as MapIcon, MessageCircle, User } from 'lucide-vue-next'
+import { useUnread } from '../composables/useUnread'
+
+const { unreadCount } = useUnread()
 
 /** Onglets de la barre du bas. « Mes activités » s'ouvre depuis Profil. */
 const tabs = [
@@ -65,6 +68,7 @@ onBeforeUnmount(() => {
     >
       <span class="tabbar__pill">
         <component :is="tab.icon" :size="22" :stroke-width="2" aria-hidden="true" />
+        <span v-if="tab.to === '/messages' && unreadCount > 0" class="tabbar__badge" :aria-label="`${unreadCount} conversation(s) non lue(s)`">{{ unreadCount > 9 ? '9+' : unreadCount }}</span>
       </span>
       <span class="tabbar__label">{{ tab.label }}</span>
     </RouterLink>
@@ -72,6 +76,22 @@ onBeforeUnmount(() => {
 </template>
 
 <style scoped>
+.tabbar__pill { position: relative; }
+.tabbar__badge {
+  position: absolute;
+  top: -4px;
+  right: -6px;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 5px;
+  border-radius: 999px;
+  background: #E5484D;
+  color: #FFFFFF;
+  font-size: 11px;
+  font-weight: 700;
+  line-height: 18px;
+  text-align: center;
+}
 /* Pastille flottante, comme le FloatingNav de référence : arrondie, centrée, ombre et bordure. */
 .tabbar {
   position: fixed;
