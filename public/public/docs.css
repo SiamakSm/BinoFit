@@ -251,7 +251,6 @@ td:first-child { color: var(--ink); font-weight: 600; }
   border: 1px solid var(--border);
   border-radius: 999px;
   background: #FFFFFF;
-  box-shadow: 0 10px 30px rgba(18, 21, 18, 0.08);
 }
 .site-nav__list a {
   position: relative;
@@ -348,7 +347,6 @@ td:first-child { color: var(--ink); font-weight: 600; }
     width: 100%;
     padding: 8px;
     border-radius: 20px;
-    box-shadow: 0 18px 40px rgba(18, 21, 18, 0.16);
   }
   .site-nav__list li { opacity: 0; transform: translateX(-8px); transition: opacity 0.2s ease, transform 0.25s ease; }
   .site-header.is-menu-open .site-nav__list li { opacity: 1; transform: none; }
