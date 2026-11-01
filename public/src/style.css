@@ -444,6 +444,14 @@ select:disabled {
   padding: 12px 0 4px;
 }
 
+.avatar img {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  object-fit: cover;
+  display: block;
+}
+
 .avatar {
   width: 84px;
   height: 84px;

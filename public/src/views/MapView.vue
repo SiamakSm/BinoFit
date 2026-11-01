@@ -22,10 +22,14 @@ const loading = ref(true)
 const errorMessage = ref('')
 let map: L.Map | null = null
 
+function escapeAttr(value: string): string {
+  return value.replace(/[&"<>]/g, (ch) => ({ '&': '&amp;', '"': '&quot;', '<': '&lt;', '>': '&gt;' })[ch] ?? ch)
+}
+
 function pinIcon(p: UserSearchResult) {
   return L.divIcon({
     className: 'binofit-pin-wrap',
-    html: `<div class="binofit-pin">${initials(p.firstName, p.lastName)}</div>`,
+    html: `<div class="binofit-pin">${p.avatarUrl ? `<img src="${escapeAttr(p.avatarUrl)}" alt="" />` : initials(p.firstName, p.lastName)}</div>`,
     iconSize: [40, 40],
     iconAnchor: [20, 20],
   })
@@ -97,7 +101,10 @@ onBeforeUnmount(() => {
         :class="{ 'is-active': selected?.id === p.id }"
         @click="selected = p"
       >
-        <span class="avatar map-list__avatar">{{ initials(p.firstName, p.lastName) }}</span>
+        <span class="avatar map-list__avatar">
+          <img v-if="p.avatarUrl" :src="p.avatarUrl" alt="" />
+          <template v-else>{{ initials(p.firstName, p.lastName) }}</template>
+        </span>
         <span class="map-list__who">
           <strong>{{ p.firstName }}</strong>
           <small v-if="p.sports[0]">{{ SPORT_LABELS[p.sports[0].sport] }} · {{ LEVEL_LABELS[p.sports[0].level] }}</small>
@@ -470,6 +477,14 @@ onBeforeUnmount(() => {
 
 <style>
 /* Marqueurs Leaflet (HTML injecté par divIcon, donc hors du scope du composant). */
+.binofit-pin img {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  object-fit: cover;
+  display: block;
+}
+
 .binofit-pin-wrap {
   background: transparent;
   border: none;

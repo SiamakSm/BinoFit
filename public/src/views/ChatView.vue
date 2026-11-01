@@ -86,6 +86,7 @@ onMounted(load)
         :to="{ name: 'athlete', params: { id: other.id } }"
         class="chat__title"
       >
+        <img v-if="other.avatarUrl" class="chat__avatar" :src="other.avatarUrl" alt="" />
         {{ other.firstName }} {{ other.lastName }}
       </RouterLink>
     </header>
@@ -130,6 +131,14 @@ onMounted(load)
 </template>
 
 <style scoped>
+.chat__avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  object-fit: cover;
+  margin-right: 8px;
+  vertical-align: middle;
+}
 .chat {
   min-height: 100svh;
   display: flex;

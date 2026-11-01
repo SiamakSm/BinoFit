@@ -10,7 +10,7 @@ import type { Conversation } from '../types/api'
 const { user } = useAuth()
 
 const conversations = ref<Conversation[]>([])
-const names = reactive<Record<string, { firstName: string; lastName: string }>>({})
+const names = reactive<Record<string, { firstName: string; lastName: string; avatarUrl: string | null }>>({})
 const loading = ref(true)
 const errorMessage = ref('')
 const tab = ref<'conversations' | 'demandes'>('conversations')
@@ -24,6 +24,10 @@ function otherId(c: Conversation): string {
 function otherName(c: Conversation): string {
   const n = names[otherId(c)]
   return n ? `${n.firstName} ${n.lastName}` : '…'
+}
+
+function otherAvatar(c: Conversation): string | null {
+  return names[otherId(c)]?.avatarUrl ?? null
 }
 
 function otherInitials(c: Conversation): string {
@@ -44,7 +48,7 @@ onMounted(async () => {
     await Promise.all(
       [...new Set(list.map(otherId))].map(async (id) => {
         const profile = await getUserCached(id)
-        if (profile) names[id] = { firstName: profile.firstName, lastName: profile.lastName }
+        if (profile) names[id] = { firstName: profile.firstName, lastName: profile.lastName, avatarUrl: profile.avatarUrl ?? null }
       }),
     )
   } catch (error) {
@@ -108,7 +112,10 @@ onMounted(async () => {
       <ul v-else class="convo-list">
         <li v-for="c in conversations" :key="c.id">
           <RouterLink :to="{ name: 'conversation', params: { id: c.id } }" class="convo">
-            <div class="avatar convo__avatar">{{ otherInitials(c) }}</div>
+            <div class="avatar convo__avatar">
+              <img v-if="otherAvatar(c)" :src="otherAvatar(c) ?? undefined" alt="" />
+              <template v-else>{{ otherInitials(c) }}</template>
+            </div>
             <div class="convo__body">
               <div class="convo__top">
                 <strong>{{ otherName(c) }}</strong>
